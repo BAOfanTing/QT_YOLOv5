@@ -6,7 +6,7 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QDebug>
-#include "opencv.hpp"
+#include <opencv.hpp>
 
 
 QT_BEGIN_NAMESPACE
@@ -28,5 +28,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
+    cv::VideoCapture *capture;
+
+    //判断读取的文件类型
+    QString filetype = "";
 };
 #endif // MAINWINDOW_H
