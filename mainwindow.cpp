@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lb_show->setAlignment(Qt::AlignCenter);
 
     capture = new cv::VideoCapture;
+    timer = new QTimer(this);
+    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
 }
 
 MainWindow::~MainWindow()
@@ -118,4 +120,23 @@ void MainWindow::on_btn_openfile_clicked()
     }
 }
 
+void MainWindow::updateFrame()
+{
+    cv::Mat frame;
+    if(capture->read(frame))
+    {
+        //读取帧成功
+        cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
+        QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+        QPixmap mmp = QPixmap::fromImage(videoimg);
+        mmp = mmp.scaledToHeight(ui->lb_show->height());
+        ui->lb_show->setPixmap(mmp);
+    }
+}
+
+void MainWindow::on_btn_startdetect_clicked()
+{
+    double frameRate = capture->get(cv::CAP_PROP_FPS);
+    timer->start(1000/frameRate); // 根据帧率开始播放
+}
 
