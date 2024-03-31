@@ -122,21 +122,84 @@ void MainWindow::on_btn_openfile_clicked()
 
 void MainWindow::updateFrame()
 {
-    cv::Mat frame;
-    if(capture->read(frame))
+    if(filetype == "video")
     {
-        //读取帧成功
-        cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
+        cv::Mat frame;
+        if(capture->read(frame))
+        {
+            //读取帧成功
+            cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
+            QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+            QPixmap mmp = QPixmap::fromImage(videoimg);
+            mmp = mmp.scaledToHeight(ui->lb_show->height());
+            ui->lb_show->setPixmap(mmp);
+        }
+        else
+        {
+            timer->stop();
+        }
+    }
+    else if(filetype == "camera")
+    {
+        cv::Mat src;
+        if(capture->isOpened())
+        {
+            //将摄像头数据放入src
+            *capture >> src;
+            if(src.data == nullptr) return; // 如果图像数据为空，则返回
+        }
+
+        //将图像转换为qt能够处理的格式
+        cv::Mat frame;
+        cv::cvtColor(src,frame,cv::COLOR_BGR2RGB);
+        cv::flip(frame,frame,1);
+
         QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
         QPixmap mmp = QPixmap::fromImage(videoimg);
-        mmp = mmp.scaledToHeight(ui->lb_show->height());
+        mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
         ui->lb_show->setPixmap(mmp);
     }
+
 }
 
 void MainWindow::on_btn_startdetect_clicked()
 {
-    double frameRate = capture->get(cv::CAP_PROP_FPS);
-    timer->start(1000/frameRate); // 根据帧率开始播放
+    if(filetype == "pic")
+    {
+        //对图像进行识别
+    }
+
+    else if(filetype == "video")
+    {
+        //对视频进行识别
+        double frameRate = capture->get(cv::CAP_PROP_FPS);
+        timer->start(1000/frameRate); // 根据帧率开始播放
+    }
+    else
+    {
+        //对摄像头进行识别
+    }
+
+}
+
+
+void MainWindow::on_btn_camera_clicked()
+{
+    filetype = "camera";
+    if(ui->btn_camera->text() == "打开摄像头")
+    {
+        ui->btn_camera->setText("关闭摄像头");
+        //打开摄像头和定时器
+        capture->open(0);
+        timer->start(100);
+    }
+    else
+    {
+        ui->btn_camera->setText("打开摄像头");
+        //关闭摄像头和定时器
+        capture->release();
+        timer->stop();
+        ui->lb_show->clear();
+    }
 }
 

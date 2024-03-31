@@ -31,6 +31,9 @@ private slots:
 
     void on_btn_startdetect_clicked();
 
+    void on_btn_camera_clicked();
+
+
 private:
     Ui::MainWindow *ui;
 
