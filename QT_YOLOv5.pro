@@ -18,6 +18,13 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
+win32
+{
+    INCLUDEPATH += E:\Environment\opencv452\include\
+                   E:\Environment\opencv452\include\opencv2
+    LIBS += E:\Environment\opencv452\x64\mingw\lib\libopencv*
+}
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
