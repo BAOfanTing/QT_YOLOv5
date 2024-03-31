@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>950</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QWidget" name="layoutWidget">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="btn_openfile">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>打开文件</string>
+           </property>
+           <property name="icon">
+            <iconset resource="res.qrc">
+             <normaloff>:/res/ic_daipingji2.svg</normaloff>:/res/ic_daipingji2.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_camera">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>打卡摄像头</string>
+           </property>
+           <property name="icon">
+            <iconset resource="res.qrc">
+             <normaloff>:/res/ic_camera.svg</normaloff>:/res/ic_camera.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_loadmodel">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>加载模型</string>
+           </property>
+           <property name="icon">
+            <iconset resource="res.qrc">
+             <normaloff>:/res/ic_Picture arrangement.svg</normaloff>:/res/ic_Picture arrangement.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox">
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>38</height>
+            </size>
+           </property>
+           <item>
+            <property name="text">
+             <string>yolov5s</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>yolov5m</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>yolov5l</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>yolov5x</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>38</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_startdetect">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>开始检测</string>
+           </property>
+           <property name="icon">
+            <iconset resource="res.qrc">
+             <normaloff>:/res/ic_right2.svg</normaloff>:/res/ic_right2.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_stopdetect">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>停止检测</string>
+           </property>
+           <property name="icon">
+            <iconset resource="res.qrc">
+             <normaloff>:/res/ic_close.svg</normaloff>:/res/ic_close.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QLabel" name="lb_show">
+        <property name="minimumSize">
+         <size>
+          <width>500</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QTextEdit" name="te_message">
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>350</height>
+        </size>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
+ <connections/>
+</ui>
