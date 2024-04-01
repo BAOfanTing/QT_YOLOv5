@@ -10,10 +10,12 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    yolov5.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    yolov5.h
 
 FORMS += \
     mainwindow.ui
