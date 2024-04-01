@@ -207,13 +207,22 @@ void MainWindow::on_btn_camera_clicked()
 void MainWindow::on_btn_loadmodel_clicked()
 {
     // 使用文件系统弹出对话框获得用户选择的文件路径
-    QString filename = QFileDialog::getOpenFileName(this, QStringLiteral("打开文件"), ".", "*.onnx");
+    QString onnxfile = QFileDialog::getOpenFileName(this, QStringLiteral("选择模型"), ".", "*.onnx");
     // 检查文件是否存在
-    if(!QFile::exists(filename))
+    if(!QFile::exists(onnxfile))
     {
         return; // 如果文件不存在，则直接返回
     }
     // 在文本编辑框中显示选中的文件路径
-    ui->te_message->setText(filename);
+    ui->te_message->setText(onnxfile);
+    if(!yolov5->loadModel(onnxfile))
+    {
+        ui->te_message->append("加载模型失败！");
+        return;
+    }
+    else
+    {
+         ui->te_message->append("加载模型成功！");
+    }
 }
 

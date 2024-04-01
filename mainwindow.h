@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <opencv.hpp>
 #include <QTimer>
+#include "yolov5.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -44,7 +45,10 @@ private:
     //判断读取的文件类型
     QString filetype = "";
 
-    //播放视频定时器
+    //播放视频和启动摄像头的定时器
     QTimer *timer;
+
+    //定义yolov5指针
+    YOLOv5 *yolov5;
 };
 #endif // MAINWINDOW_H

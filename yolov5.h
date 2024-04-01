@@ -21,7 +21,7 @@ class YOLOv5
 public:
     YOLOv5();
     void Init(NetConfig config);
-    bool loadModel(const char* onnxfile);
+    bool loadModel(QString onnxfile);
     void detect(cv::Mat& frame);
 
 private:
