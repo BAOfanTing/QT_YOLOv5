@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
                                 .arg(conf.nmsThreshold)
                                 .arg(conf.objThreshold)
                                 .arg(conf.confThreshold));
+    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
 }
 
 MainWindow::~MainWindow()
@@ -164,7 +165,7 @@ void MainWindow::updateFrame()
             auto end = std::chrono::steady_clock::now();
             std::chrono::duration<double, std::milli> elapsed = end - start;
             ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
-
+            ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
             QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
             QPixmap mmp = QPixmap::fromImage(videoimg);
             mmp = mmp.scaledToHeight(ui->lb_show->height());
@@ -195,6 +196,7 @@ void MainWindow::updateFrame()
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
         ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
+        ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
         //显示图片
         QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
         QPixmap mmp = QPixmap::fromImage(videoimg);
@@ -259,7 +261,7 @@ void MainWindow::on_btn_camera_clicked()
         ui->btn_camera->setText("关闭摄像头");
         //打开摄像头和定时器
         capture->open(0);
-        timer->start(100);
+        timer->start(30);
     }
     else
     {
