@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     // 设置QLabel的对齐方式为居中
     ui->lb_show->setAlignment(Qt::AlignCenter);
 
+
     capture = new cv::VideoCapture;
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
@@ -35,6 +36,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btn_openfile_clicked()
 {
+    if(!is_loadedmodel)
+    {
+        QMessageBox::information(nullptr,"错误","请先加载模型！");
+        return;
+    }
     // 使用文件系统弹出对话框获得用户选择的文件路径
     QString filename = QFileDialog::getOpenFileName(this, QStringLiteral("打开文件"), ".", "*.mp4 *.avi *.png *.jpg *.jpeg *.bmp");
     // 检查文件是否存在
@@ -81,7 +87,13 @@ void MainWindow::on_btn_openfile_clicked()
             cv::cvtColor(src, temp, cv::COLOR_GRAY2RGB);
         }
 
+        //yolo检测+时间计算
+        auto start = std::chrono::steady_clock::now();
         yolov5->detect(temp);
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
+
         // 将OpenCV的Mat数据转换为QImage对象
         QImage img = QImage(temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
         // 将QImage对象转换为QPixmap对象，并根据标签的高度调整图片大小
@@ -145,7 +157,13 @@ void MainWindow::updateFrame()
         {
             //读取帧成功
             cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
+
+            //yolo检测+时间计算
+            auto start = std::chrono::steady_clock::now();
             if(canDetect) yolov5->detect(frame);
+            auto end = std::chrono::steady_clock::now();
+            std::chrono::duration<double, std::milli> elapsed = end - start;
+            ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
 
             QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
             QPixmap mmp = QPixmap::fromImage(videoimg);
@@ -171,8 +189,13 @@ void MainWindow::updateFrame()
         cv::Mat frame;
         cv::cvtColor(src,frame,cv::COLOR_BGR2RGB);
         cv::flip(frame,frame,1);//水平翻转图像
-
+        //yolo检测+时间计算
+        auto start = std::chrono::steady_clock::now();
         if(canDetect) yolov5->detect(frame);
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
+        //显示图片
         QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
         QPixmap mmp = QPixmap::fromImage(videoimg);
         mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
@@ -183,16 +206,12 @@ void MainWindow::updateFrame()
 
 void MainWindow::on_btn_startdetect_clicked()
 {
-    //开始检测时封锁其他按钮
-    ui->btn_startdetect->setEnabled(false);
-    ui->btn_stopdetect->setEnabled(true);
-    ui->btn_openfile->setEnabled(false);
-    ui->btn_loadmodel->setEnabled(false);
-    ui->btn_camera->setEnabled(false);
-    ui->comboBox->setEnabled(false);
-    ui->te_message->append(QStringLiteral("=======================\n"
-                                           "        开始检测\n"
-                                           "=======================\n"));
+    if(!is_loadedmodel)
+    {
+        QMessageBox::information(nullptr,"错误","请先加载模型！");
+        return;
+    }
+
     if(filetype == "pic")
     {
         //对图像进行识别
@@ -203,19 +222,37 @@ void MainWindow::on_btn_startdetect_clicked()
         canDetect = true;
         double frameRate = capture->get(cv::CAP_PROP_FPS);
         timer->start(1000/frameRate); // 根据帧率开始播放
-
     }
-    else
+    else if(filetype == "camera")
     {
         canDetect = true;
         //对摄像头进行识别
     }
-
+    else
+    {
+        QMessageBox::information(nullptr,"错误","请打开视频或者摄像头！");
+        return;
+    }
+    //开始检测时封锁其他按钮
+    ui->btn_startdetect->setEnabled(false);
+    ui->btn_stopdetect->setEnabled(true);
+    ui->btn_openfile->setEnabled(false);
+    ui->btn_loadmodel->setEnabled(false);
+    ui->btn_camera->setEnabled(false);
+    ui->comboBox->setEnabled(false);
+    ui->te_message->append(QString( "=======================\n"
+                                    "        开始检测\n"
+                                    "=======================\n"));
 }
 
 
 void MainWindow::on_btn_camera_clicked()
 {
+    if(!is_loadedmodel)
+    {
+        QMessageBox::information(nullptr,"错误","请先加载模型！");
+        return;
+    }
     filetype = "camera";
     if(ui->btn_camera->text() == "打开摄像头")
     {
@@ -253,7 +290,25 @@ void MainWindow::on_btn_loadmodel_clicked()
     }
     else
     {
-         ui->te_message->append("加载模型成功！");
+        ui->te_message->append("加载模型成功！");
+        is_loadedmodel = true;
     }
+}
+
+
+void MainWindow::on_btn_stopdetect_clicked()
+{
+    //开始检测时封锁其他按钮
+    ui->btn_startdetect->setEnabled(true);
+    ui->btn_stopdetect->setEnabled(false);
+    ui->btn_openfile->setEnabled(true);
+    ui->btn_loadmodel->setEnabled(true);
+    ui->btn_camera->setEnabled(true);
+    ui->comboBox->setEnabled(true);
+    timer->stop();
+    ui->te_message->append(QString( "======================\n"
+                                    "        停止检测\n"
+                                    "======================\n"));
+    canDetect = false;
 }
 

@@ -37,6 +37,8 @@ private slots:
 
     void on_btn_loadmodel_clicked();
 
+    void on_btn_stopdetect_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -56,5 +58,6 @@ private:
     std::vector<cv::Rect> bboxes;
 
     bool canDetect = false;
+    bool is_loadedmodel = false;
 };
 #endif // MAINWINDOW_H
