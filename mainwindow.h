@@ -50,5 +50,9 @@ private:
 
     //定义yolov5指针
     YOLOv5 *yolov5;
+
+    NetConfig conf;
+    NetConfig *yolo_nets;
+    std::vector<cv::Rect> bboxes;
 };
 #endif // MAINWINDOW_H

@@ -12,6 +12,19 @@ MainWindow::MainWindow(QWidget *parent)
     capture = new cv::VideoCapture;
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
+    yolo_nets = new NetConfig[4]{
+        {0.5, 0.5, 0.5, "yolov5s"},
+        {0.6, 0.6, 0.6, "yolov5m"},
+        {0.65, 0.65, 0.65, "yolov5l"},
+        {0.75, 0.75, 0.75, "yolov5x"}
+    };
+    conf = yolo_nets[0];
+    yolov5 = new YOLOv5();
+    yolov5->Init(conf);
+    ui->te_message->append(QStringLiteral("默认模型类别：yolov5s args: %1 %2 %3")
+                                .arg(conf.nmsThreshold)
+                                .arg(conf.objThreshold)
+                                .arg(conf.confThreshold));
 }
 
 MainWindow::~MainWindow()
@@ -67,6 +80,8 @@ void MainWindow::on_btn_openfile_clicked()
             // 如果图片是2通道的或其他情况，这里的注释应该为处理单通道灰度图，将其转换为RGB
             cv::cvtColor(src, temp, cv::COLOR_GRAY2RGB);
         }
+
+        yolov5->detect(temp);
         // 将OpenCV的Mat数据转换为QImage对象
         QImage img = QImage(temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
         // 将QImage对象转换为QPixmap对象，并根据标签的高度调整图片大小
@@ -74,6 +89,7 @@ void MainWindow::on_btn_openfile_clicked()
         mmp = mmp.scaledToHeight(ui->lb_show->height());
         // 将调整后的图片显示在标签上
         ui->lb_show->setPixmap(mmp);
+
         filename.clear();
     }
     else if(mime.name().startsWith("video/"))

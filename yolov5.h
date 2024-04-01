@@ -4,7 +4,7 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <QMessageBox>
-
+#include <QDebug>
 
 struct NetConfig
 {
@@ -69,6 +69,17 @@ private:
     std::vector<int> indices;
     // 神经网络
     cv::dnn::Net net;
+
+    //========= test =========
+    std::vector<int> blob_sizes{ 1, 3, 640, 640};
+    cv::Mat blob = cv::Mat(blob_sizes, CV_32FC1, cv::Scalar(0.0));
+
+    void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+    void sigmoid(cv::Mat* out, int length);
 };
 
+static inline float sigmoid_x(float x)
+{
+    return static_cast<float>(1.f / (1.f + exp(-x)));
+}
 #endif // YOLOV5_H
