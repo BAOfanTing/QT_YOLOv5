@@ -54,5 +54,7 @@ private:
     NetConfig conf;
     NetConfig *yolo_nets;
     std::vector<cv::Rect> bboxes;
+
+    bool canDetect = false;
 };
 #endif // MAINWINDOW_H

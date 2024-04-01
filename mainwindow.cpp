@@ -145,6 +145,8 @@ void MainWindow::updateFrame()
         {
             //读取帧成功
             cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
+            if(canDetect) yolov5->detect(frame);
+
             QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
             QPixmap mmp = QPixmap::fromImage(videoimg);
             mmp = mmp.scaledToHeight(ui->lb_show->height());
@@ -168,8 +170,9 @@ void MainWindow::updateFrame()
         //将图像转换为qt能够处理的格式
         cv::Mat frame;
         cv::cvtColor(src,frame,cv::COLOR_BGR2RGB);
-        cv::flip(frame,frame,1);
+        cv::flip(frame,frame,1);//水平翻转图像
 
+        if(canDetect) yolov5->detect(frame);
         QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
         QPixmap mmp = QPixmap::fromImage(videoimg);
         mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
@@ -180,19 +183,31 @@ void MainWindow::updateFrame()
 
 void MainWindow::on_btn_startdetect_clicked()
 {
+    //开始检测时封锁其他按钮
+    ui->btn_startdetect->setEnabled(false);
+    ui->btn_stopdetect->setEnabled(true);
+    ui->btn_openfile->setEnabled(false);
+    ui->btn_loadmodel->setEnabled(false);
+    ui->btn_camera->setEnabled(false);
+    ui->comboBox->setEnabled(false);
+    ui->te_message->append(QStringLiteral("=======================\n"
+                                           "        开始检测\n"
+                                           "=======================\n"));
     if(filetype == "pic")
     {
         //对图像进行识别
     }
-
     else if(filetype == "video")
     {
         //对视频进行识别
+        canDetect = true;
         double frameRate = capture->get(cv::CAP_PROP_FPS);
         timer->start(1000/frameRate); // 根据帧率开始播放
+
     }
     else
     {
+        canDetect = true;
         //对摄像头进行识别
     }
 
