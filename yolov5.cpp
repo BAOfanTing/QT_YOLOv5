@@ -40,6 +40,7 @@ bool YOLOv5::loadModel(QString onnxfile)
             // 如果有可用的CUDA设备，将网络的推理后端设置为CUDA以使用GPU
             this->net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
             this->net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+            QMessageBox::information(NULL, "warning", QStringLiteral("正在使用GPU推理！\n"), QMessageBox::Yes, QMessageBox::Yes);
         }
         else
         {

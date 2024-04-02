@@ -213,27 +213,38 @@ void MainWindow::on_btn_startdetect_clicked()
         canDetect = true;
         double frameRate = capture->get(cv::CAP_PROP_FPS);
         timer->start(1000/frameRate); // 根据帧率开始播放
+        //开始检测时封锁其他按钮
+        ui->btn_startdetect->setEnabled(false);
+        ui->btn_stopdetect->setEnabled(true);
+        ui->btn_openfile->setEnabled(false);
+        ui->btn_loadmodel->setEnabled(false);
+        ui->btn_camera->setEnabled(false);
+        ui->comboBox->setEnabled(false);
+        ui->te_message->append(QString( "=======================\n"
+                                       "        开始检测\n"
+                                       "=======================\n"));
     }
     else if(filetype == "camera")
     {
         canDetect = true;
         //对摄像头进行识别
+        //开始检测时封锁其他按钮
+        ui->btn_startdetect->setEnabled(false);
+        ui->btn_stopdetect->setEnabled(true);
+        ui->btn_openfile->setEnabled(false);
+        ui->btn_loadmodel->setEnabled(false);
+        ui->btn_camera->setEnabled(false);
+        ui->comboBox->setEnabled(false);
+        ui->te_message->append(QString( "=======================\n"
+                                       "        开始检测\n"
+                                       "=======================\n"));
     }
     else
     {
         QMessageBox::information(nullptr,"错误","请打开视频或者摄像头！");
         return;
     }
-    //开始检测时封锁其他按钮
-    ui->btn_startdetect->setEnabled(false);
-    ui->btn_stopdetect->setEnabled(true);
-    ui->btn_openfile->setEnabled(false);
-    ui->btn_loadmodel->setEnabled(false);
-    ui->btn_camera->setEnabled(false);
-    ui->comboBox->setEnabled(false);
-    ui->te_message->append(QString( "=======================\n"
-                                    "        开始检测\n"
-                                    "=======================\n"));
+
 }
 
 
@@ -290,29 +301,30 @@ void MainWindow::on_btn_loadmodel_clicked()
 void MainWindow::on_btn_stopdetect_clicked()
 {
     //开始检测时封锁其他按钮
+    timer->stop();
     ui->btn_startdetect->setEnabled(true);
     ui->btn_stopdetect->setEnabled(false);
     ui->btn_openfile->setEnabled(true);
     ui->btn_loadmodel->setEnabled(true);
     ui->btn_camera->setEnabled(true);
     ui->comboBox->setEnabled(true);
-    timer->stop();
     ui->te_message->append(QString( "======================\n"
                                     "        停止检测\n"
                                     "======================\n"));
     canDetect = false;
+    ui->lb_show->clear();
 }
 
 void MainWindow::drawRectPic(cv::Mat &frame)
-{
-    auto end = std::chrono::steady_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
-    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
+{   
     //显示图片
     QImage img = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
     QPixmap mmp = QPixmap::fromImage(img);
     mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
     ui->lb_show->setPixmap(mmp);
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
+    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
 }
 
