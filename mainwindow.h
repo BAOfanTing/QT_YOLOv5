@@ -9,6 +9,8 @@
 #include <opencv.hpp>
 #include <QTimer>
 #include "yolov5.h"
+#include <QThread>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -39,6 +41,11 @@ private slots:
 
     void on_btn_stopdetect_clicked();
 
+    void drawRectPic(cv::Mat &frame);
+
+signals:
+    void sendFrame(cv::Mat &frame);
+
 private:
     Ui::MainWindow *ui;
 
@@ -59,5 +66,7 @@ private:
 
     bool canDetect = false;
     bool is_loadedmodel = false;
+
+    std::chrono::steady_clock::time_point start;
 };
 #endif // MAINWINDOW_H

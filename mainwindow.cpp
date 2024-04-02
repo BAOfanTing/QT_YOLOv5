@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     capture = new cv::VideoCapture;
     timer = new QTimer(this);
-    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
+
     yolo_nets = new NetConfig[4]{
         {0.5, 0.5, 0.5, "yolov5s"},
         {0.6, 0.6, 0.6, "yolov5m"},
@@ -27,6 +27,20 @@ MainWindow::MainWindow(QWidget *parent)
                                 .arg(conf.objThreshold)
                                 .arg(conf.confThreshold));
     ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
+    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
+    //使用线程优化
+    QThread *thread = new QThread();
+    //把yolov5放入线程
+    yolov5->moveToThread(thread);
+    thread->start();
+    //发送检测信号
+    connect(this,&MainWindow::sendFrame,yolov5,&YOLOv5::detect);
+    //发送绘制信号
+    connect(yolov5,&YOLOv5::senddraw,yolov5,&YOLOv5::drawPred);
+    //绘制有框的图片
+    connect(yolov5,&YOLOv5::drawEnd,this,&MainWindow::drawRectPic);
+    //绘制无框图片
+    connect(yolov5,&YOLOv5::detectEnd,this,&MainWindow::drawRectPic);
 }
 
 MainWindow::~MainWindow()
@@ -89,19 +103,10 @@ void MainWindow::on_btn_openfile_clicked()
         }
 
         //yolo检测+时间计算
-        auto start = std::chrono::steady_clock::now();
-        yolov5->detect(temp);
-        auto end = std::chrono::steady_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
-
-        // 将OpenCV的Mat数据转换为QImage对象
-        QImage img = QImage(temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
-        // 将QImage对象转换为QPixmap对象，并根据标签的高度调整图片大小
-        QPixmap mmp = QPixmap::fromImage(img);
-        mmp = mmp.scaledToHeight(ui->lb_show->height());
-        // 将调整后的图片显示在标签上
-        ui->lb_show->setPixmap(mmp);
+        start = std::chrono::steady_clock::now();
+        //发送检测信号
+        //yolov5->detect(temp);
+        emit sendFrame(temp);
 
         filename.clear();
     }
@@ -160,16 +165,8 @@ void MainWindow::updateFrame()
             cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
 
             //yolo检测+时间计算
-            auto start = std::chrono::steady_clock::now();
-            if(canDetect) yolov5->detect(frame);
-            auto end = std::chrono::steady_clock::now();
-            std::chrono::duration<double, std::milli> elapsed = end - start;
-            ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
-            ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
-            QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-            QPixmap mmp = QPixmap::fromImage(videoimg);
-            mmp = mmp.scaledToHeight(ui->lb_show->height());
-            ui->lb_show->setPixmap(mmp);
+            start = std::chrono::steady_clock::now();
+            emit sendFrame(frame);
         }
         else
         {
@@ -191,17 +188,9 @@ void MainWindow::updateFrame()
         cv::cvtColor(src,frame,cv::COLOR_BGR2RGB);
         cv::flip(frame,frame,1);//水平翻转图像
         //yolo检测+时间计算
-        auto start = std::chrono::steady_clock::now();
-        if(canDetect) yolov5->detect(frame);
-        auto end = std::chrono::steady_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
-        ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
-        //显示图片
-        QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-        QPixmap mmp = QPixmap::fromImage(videoimg);
-        mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
-        ui->lb_show->setPixmap(mmp);
+        start = std::chrono::steady_clock::now();
+        if(canDetect) emit sendFrame(frame);
+
     }
 
 }
@@ -312,5 +301,18 @@ void MainWindow::on_btn_stopdetect_clicked()
                                     "        停止检测\n"
                                     "======================\n"));
     canDetect = false;
+}
+
+void MainWindow::drawRectPic(cv::Mat &frame)
+{
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
+    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
+    //显示图片
+    QImage img = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+    QPixmap mmp = QPixmap::fromImage(img);
+    mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
+    ui->lb_show->setPixmap(mmp);
 }
 
