@@ -2,7 +2,9 @@
 using namespace std;
 using namespace cv;
 
-YOLOv5::YOLOv5() {}
+YOLOv5::YOLOv5(QObject *parent)
+    : QObject{parent}
+{}
 
 // YOLOv5对象的初始化函数
 void YOLOv5::Init(NetConfig config)
@@ -57,6 +59,7 @@ bool YOLOv5::loadModel(QString onnxfile)
 // YOLOv5目标检测函数
 void YOLOv5::detect(cv::Mat &frame)
 {
+    qDebug()<<"检测调用";
     // 将输入图像转换为神经网络的blob格式，并进行归一化和大小调整
     cv::dnn::blobFromImage(frame, blob, 1 / 255.0, cv::Size(this->inpWidth, this->inpHeight), cv::Scalar(0, 0, 0), true);
     // 将blob设置为网络的输入
@@ -143,6 +146,7 @@ void YOLOv5::detect(cv::Mat &frame)
 
 void YOLOv5::drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat &frame)
 {
+    qDebug()<<classId;
     // 绘制检测框
     rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 0, 255), 3);
 

@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     capture = new cv::VideoCapture;
     timer = new QTimer(this);
-    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
+
     yolo_nets = new NetConfig[4]{
         {0.5, 0.5, 0.5, "yolov5s"},
         {0.6, 0.6, 0.6, "yolov5m"},
@@ -27,6 +27,14 @@ MainWindow::MainWindow(QWidget *parent)
                                 .arg(conf.objThreshold)
                                 .arg(conf.confThreshold));
     ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
+    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
+    //使用线程优化
+    QThread *thread = new QThread();
+    //把yolov5放入线程
+    yolov5->moveToThread(thread);
+    thread->start();
+    connect(this,&MainWindow::sendFrame,yolov5,&YOLOv5::detect);
+
 }
 
 MainWindow::~MainWindow()
@@ -90,7 +98,8 @@ void MainWindow::on_btn_openfile_clicked()
 
         //yolo检测+时间计算
         auto start = std::chrono::steady_clock::now();
-        yolov5->detect(temp);
+        //发送检测信号
+        emit sendFrame(temp);
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
         ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
@@ -161,7 +170,7 @@ void MainWindow::updateFrame()
 
             //yolo检测+时间计算
             auto start = std::chrono::steady_clock::now();
-            if(canDetect) yolov5->detect(frame);
+            if(canDetect) emit sendFrame(frame);
             auto end = std::chrono::steady_clock::now();
             std::chrono::duration<double, std::milli> elapsed = end - start;
             ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
@@ -192,7 +201,7 @@ void MainWindow::updateFrame()
         cv::flip(frame,frame,1);//水平翻转图像
         //yolo检测+时间计算
         auto start = std::chrono::steady_clock::now();
-        if(canDetect) yolov5->detect(frame);
+        if(canDetect) emit sendFrame(frame);
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
         ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));

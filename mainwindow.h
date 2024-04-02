@@ -9,6 +9,8 @@
 #include <opencv.hpp>
 #include <QTimer>
 #include "yolov5.h"
+#include <QThread>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -38,6 +40,9 @@ private slots:
     void on_btn_loadmodel_clicked();
 
     void on_btn_stopdetect_clicked();
+
+signals:
+    void sendFrame(cv::Mat &frame);
 
 private:
     Ui::MainWindow *ui;

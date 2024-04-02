@@ -1,5 +1,6 @@
 #ifndef YOLOV5_H
 #define YOLOV5_H
+#include <QObject>
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/core/cuda.hpp>
@@ -16,12 +17,14 @@ struct NetConfig
 
 
 
-class YOLOv5
-{
+class YOLOv5 : public QObject {
+    Q_OBJECT  // 使得类支持Qt信号和槽机制
 public:
-    YOLOv5();
+    explicit YOLOv5(QObject *parent = nullptr);
     void Init(NetConfig config);
     bool loadModel(QString onnxfile);
+
+public slots:
     void detect(cv::Mat& frame);
 
 private:
