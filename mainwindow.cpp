@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+using namespace cv;
+using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -32,13 +34,14 @@ MainWindow::MainWindow(QWidget *parent)
     QThread *thread = new QThread();
     //把yolov5放入线程
     yolov5->moveToThread(thread);
+    this->moveToThread(thread);
     thread->start();
     //发送检测信号
     connect(this,&MainWindow::sendFrame,yolov5,&YOLOv5::detect);
     //发送绘制信号
-    connect(yolov5,&YOLOv5::senddraw,yolov5,&YOLOv5::drawPred);
+    connect(yolov5,&YOLOv5::senddraw,this,&MainWindow::drawPred);
     //绘制有框的图片
-    connect(yolov5,&YOLOv5::drawEnd,this,&MainWindow::drawRectPic);
+    connect(this,&MainWindow::drawEnd,this,&MainWindow::drawRectPic);
     //绘制无框图片
     connect(yolov5,&YOLOv5::detectEnd,this,&MainWindow::drawRectPic);
 }
@@ -326,5 +329,24 @@ void MainWindow::drawRectPic(cv::Mat &frame)
     std::chrono::duration<double, std::milli> elapsed = end - start;
     ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
     ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
+}
+
+void MainWindow::drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat &frame)
+{
+    qDebug()<<classId;
+    // 绘制检测框
+    rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 0, 255), 3);
+
+    // 构建标签，包含类别名称和置信度
+    string label = format("%.2f", conf);
+    label = yolov5->classes[classId] + ":" + label;
+
+    int baseLine;
+    // 获取标签尺寸
+    Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+    top = max(top, labelSize.height);
+    // 绘制标签
+    putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 255, 0), 1);
+    emit drawEnd(frame);
 }
 

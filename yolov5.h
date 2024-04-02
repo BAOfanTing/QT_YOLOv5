@@ -23,26 +23,6 @@ public:
     explicit YOLOv5(QObject *parent = nullptr);
     void Init(NetConfig config);
     bool loadModel(QString onnxfile);
-
-signals:
-    void senddraw(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
-    void drawEnd(cv::Mat& frame);
-    void detectEnd(cv::Mat& frame);
-public slots:
-    void detect(cv::Mat& frame);
-    void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
-private:
-    float confThreshold; // 类别置信度阈值
-    float nmsThreshold;  // 非最大抑制（NMS）阈值
-    float objThreshold;  // 目标置信度阈值
-    // 定义锚点尺寸，每个尺寸组对应不同尺度的特征图
-    const float anchors[3][6] = {
-        {10.0, 13.0, 16.0, 30.0, 33.0, 23.0},
-        {30.0, 61.0, 62.0, 45.0, 59.0, 119.0},
-        {116.0, 90.0, 156.0, 198.0, 373.0, 326.0}
-    };
-    // 定义特征图的步长
-    const float stride[3] = {8.0, 16.0, 32.0};
     // 定义可能检测到的类别
     std::string classes[80] = {
         "person", "bicycle", "car", "motorbike", "aeroplane", "bus",
@@ -60,6 +40,27 @@ private:
         "sink", "refrigerator", "book", "clock", "vase", "scissors",
         "teddy bear", "hair drier", "toothbrush"
     };
+signals:
+    void senddraw(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+
+    void detectEnd(cv::Mat& frame);
+
+public slots:
+    void detect(cv::Mat& frame);
+    // void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+private:
+    float confThreshold; // 类别置信度阈值
+    float nmsThreshold;  // 非最大抑制（NMS）阈值
+    float objThreshold;  // 目标置信度阈值
+    // 定义锚点尺寸，每个尺寸组对应不同尺度的特征图
+    const float anchors[3][6] = {
+        {10.0, 13.0, 16.0, 30.0, 33.0, 23.0},
+        {30.0, 61.0, 62.0, 45.0, 59.0, 119.0},
+        {116.0, 90.0, 156.0, 198.0, 373.0, 326.0}
+    };
+    // 定义特征图的步长
+    const float stride[3] = {8.0, 16.0, 32.0};
+
     // 输入图像的宽和高
     const int inpWidth = 640;
     const int inpHeight = 640;

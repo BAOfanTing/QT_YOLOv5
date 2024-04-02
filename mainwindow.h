@@ -43,9 +43,10 @@ private slots:
 
     void drawRectPic(cv::Mat &frame);
 
+    void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat &frame);
 signals:
     void sendFrame(cv::Mat &frame);
-
+    void drawEnd(cv::Mat& frame);
 private:
     Ui::MainWindow *ui;
 

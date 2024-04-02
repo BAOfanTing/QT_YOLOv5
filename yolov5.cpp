@@ -149,25 +149,6 @@ void YOLOv5::detect(cv::Mat &frame)
     }
 }
 
-void YOLOv5::drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat &frame)
-{
-    qDebug()<<classId;
-    // 绘制检测框
-    rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 0, 255), 3);
-
-    // 构建标签，包含类别名称和置信度
-    string label = format("%.2f", conf);
-    label = this->classes[classId] + ":" + label;
-
-    int baseLine;
-    // 获取标签尺寸
-    Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-    top = max(top, labelSize.height);
-    // 绘制标签
-    putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 255, 0), 1);
-    emit drawEnd(frame);
-}
-
 void YOLOv5::sigmoid(cv::Mat *out, int length)
 {
     float* pdata = (float*)(out->data);
