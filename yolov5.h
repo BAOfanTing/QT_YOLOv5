@@ -24,9 +24,13 @@ public:
     void Init(NetConfig config);
     bool loadModel(QString onnxfile);
 
+signals:
+    void senddraw(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+    void drawEnd(cv::Mat& frame);
+    void detectEnd(cv::Mat& frame);
 public slots:
     void detect(cv::Mat& frame);
-
+    void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
 private:
     float confThreshold; // 类别置信度阈值
     float nmsThreshold;  // 非最大抑制（NMS）阈值
@@ -77,7 +81,7 @@ private:
     std::vector<int> blob_sizes{ 1, 3, 640, 640};
     cv::Mat blob = cv::Mat(blob_sizes, CV_32FC1, cv::Scalar(0.0));
 
-    void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+
     void sigmoid(cv::Mat* out, int length);
 };
 

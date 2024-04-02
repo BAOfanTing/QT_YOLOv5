@@ -41,6 +41,8 @@ private slots:
 
     void on_btn_stopdetect_clicked();
 
+    void drawRectPic(cv::Mat &frame);
+
 signals:
     void sendFrame(cv::Mat &frame);
 
@@ -64,5 +66,7 @@ private:
 
     bool canDetect = false;
     bool is_loadedmodel = false;
+
+    std::chrono::steady_clock::time_point start;
 };
 #endif // MAINWINDOW_H

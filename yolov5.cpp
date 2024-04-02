@@ -134,12 +134,16 @@ void YOLOv5::detect(cv::Mat &frame)
 
     indices.clear();
     cv::dnn::NMSBoxes(boxes, confidences, this->confThreshold, this->nmsThreshold, indices);
+    if(indices.size() == 0)
+    {
+        emit detectEnd(frame);
+    }
     for (size_t i = 0; i < indices.size(); ++i)
     {
         int idx = indices[i];
         Rect box = boxes[idx];
         // 绘制预测框及其类别和置信度
-        this->drawPred(classIds[idx], confidences[idx], box.x, box.y,
+        emit senddraw(classIds[idx], confidences[idx], box.x, box.y,
                        box.x + box.width, box.y + box.height, frame);
     }
 }
@@ -160,6 +164,7 @@ void YOLOv5::drawPred(int classId, float conf, int left, int top, int right, int
     top = max(top, labelSize.height);
     // 绘制标签
     putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 255, 0), 1);
+    emit drawEnd(frame);
 }
 
 void YOLOv5::sigmoid(cv::Mat *out, int length)
