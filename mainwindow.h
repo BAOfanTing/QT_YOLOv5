@@ -6,7 +6,7 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QDebug>
-#include <opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <QTimer>
 #include "yolov5.h"
 #include <QThread>
