@@ -6,10 +6,15 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QDebug>
-#include <opencv2/opencv.hpp>
+#include <opencv.hpp>
 #include <QTimer>
 #include "yolov5.h"
-#include <QThread>
+
+
+#ifdef QT_NO_DEBUG
+#pragma comment(lib,"E:/Environment/opencv460-cuda/x64/vc16/lib/opencv_world460.lib")
+#pragma comment(lib,"E:/Environment/opencv460-cuda/x64/vc16/lib/opencv_img_hash460.lib")
+#endif
 
 
 QT_BEGIN_NAMESPACE
@@ -26,6 +31,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void drawDetectPic(cv::Mat &frame);
+
 private slots:
     void on_btn_openfile_clicked();
 
@@ -40,11 +47,6 @@ private slots:
     void on_btn_loadmodel_clicked();
 
     void on_btn_stopdetect_clicked();
-
-    void drawRectPic(cv::Mat &frame);
-
-signals:
-    void sendFrame(cv::Mat &frame);
 
 private:
     Ui::MainWindow *ui;
@@ -66,7 +68,6 @@ private:
 
     bool canDetect = false;
     bool is_loadedmodel = false;
-
     std::chrono::steady_clock::time_point start;
 };
 #endif // MAINWINDOW_H

@@ -11,3 +11,5 @@
 使用这个版本的代码，线程优化没有起到作用
 
 ![image](https://github.com/BAOfanTing/QT_YOLOv5/assets/69379538/9af56256-a727-4d1e-b133-dbcd6b638267)
+
+也可以使用稳定版-cuda加速

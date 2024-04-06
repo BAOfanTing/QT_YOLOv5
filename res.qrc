@@ -1,9 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>res/ic_camera.svg</file>
-        <file>res/ic_right2.svg</file>
         <file>res/ic_close.svg</file>
         <file>res/ic_daipingji2.svg</file>
         <file>res/ic_Picture arrangement.svg</file>
+        <file>res/ic_right2.svg</file>
     </qresource>
 </RCC>

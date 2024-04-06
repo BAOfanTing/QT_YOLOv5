@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     capture = new cv::VideoCapture;
     timer = new QTimer(this);
-
+    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
     yolo_nets = new NetConfig[4]{
         {0.5, 0.5, 0.5, "yolov5s"},
         {0.6, 0.6, 0.6, "yolov5m"},
@@ -23,29 +23,32 @@ MainWindow::MainWindow(QWidget *parent)
     yolov5 = new YOLOv5();
     yolov5->Init(conf);
     ui->te_message->append(QStringLiteral("默认模型类别：yolov5s args: %1 %2 %3")
-                                .arg(conf.nmsThreshold)
-                                .arg(conf.objThreshold)
-                                .arg(conf.confThreshold));
-    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
-    connect(timer,&QTimer::timeout,this,&MainWindow::updateFrame);
-    //使用线程优化
-    QThread *thread = new QThread();
-    //把yolov5放入线程
-    yolov5->moveToThread(thread);
-    thread->start();
-    //发送检测信号
-    connect(this,&MainWindow::sendFrame,yolov5,&YOLOv5::detect);
-    //发送绘制信号
-    connect(yolov5,&YOLOv5::senddraw,yolov5,&YOLOv5::drawPred);
-    //绘制有框的图片
-    connect(yolov5,&YOLOv5::drawEnd,this,&MainWindow::drawRectPic);
-    //绘制无框图片
-    connect(yolov5,&YOLOv5::detectEnd,this,&MainWindow::drawRectPic);
+                               .arg(conf.nmsThreshold)
+                               .arg(conf.objThreshold)
+                               .arg(conf.confThreshold));
+    ui->btn_startdetect->setEnabled(false);
+    ui->btn_stopdetect->setEnabled(false);
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::drawDetectPic(cv::Mat &frame)
+{
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+    ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
+    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
+    // 将OpenCV的Mat数据转换为QImage对象
+    QImage img = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
+    // 将QImage对象转换为QPixmap对象，并根据标签的高度调整图片大小
+    QPixmap mmp = QPixmap::fromImage(img);
+    mmp = mmp.scaledToHeight(ui->lb_show->height());
+    // 将调整后的图片显示在标签上
+    ui->lb_show->setPixmap(mmp);
 }
 
 
@@ -104,9 +107,8 @@ void MainWindow::on_btn_openfile_clicked()
 
         //yolo检测+时间计算
         start = std::chrono::steady_clock::now();
-        //发送检测信号
-        //yolov5->detect(temp);
-        emit sendFrame(temp);
+        yolov5->detect(temp);
+        drawDetectPic(temp);
 
         filename.clear();
     }
@@ -166,11 +168,13 @@ void MainWindow::updateFrame()
 
             //yolo检测+时间计算
             start = std::chrono::steady_clock::now();
-            emit sendFrame(frame);
+            if(canDetect) yolov5->detect(frame);
+            drawDetectPic(frame);
         }
         else
         {
             timer->stop();
+            this->on_btn_stopdetect_clicked();
         }
     }
     else if(filetype == "camera")
@@ -189,8 +193,8 @@ void MainWindow::updateFrame()
         cv::flip(frame,frame,1);//水平翻转图像
         //yolo检测+时间计算
         start = std::chrono::steady_clock::now();
-        if(canDetect) emit sendFrame(frame);
-
+        if(canDetect) yolov5->detect(frame);
+        drawDetectPic(frame);
     }
 
 }
@@ -213,38 +217,27 @@ void MainWindow::on_btn_startdetect_clicked()
         canDetect = true;
         double frameRate = capture->get(cv::CAP_PROP_FPS);
         timer->start(1000/frameRate); // 根据帧率开始播放
-        //开始检测时封锁其他按钮
-        ui->btn_startdetect->setEnabled(false);
-        ui->btn_stopdetect->setEnabled(true);
-        ui->btn_openfile->setEnabled(false);
-        ui->btn_loadmodel->setEnabled(false);
-        ui->btn_camera->setEnabled(false);
-        ui->comboBox->setEnabled(false);
-        ui->te_message->append(QString( "=======================\n"
-                                       "        开始检测\n"
-                                       "=======================\n"));
     }
     else if(filetype == "camera")
     {
         canDetect = true;
         //对摄像头进行识别
-        //开始检测时封锁其他按钮
-        ui->btn_startdetect->setEnabled(false);
-        ui->btn_stopdetect->setEnabled(true);
-        ui->btn_openfile->setEnabled(false);
-        ui->btn_loadmodel->setEnabled(false);
-        ui->btn_camera->setEnabled(false);
-        ui->comboBox->setEnabled(false);
-        ui->te_message->append(QString( "=======================\n"
-                                       "        开始检测\n"
-                                       "=======================\n"));
     }
     else
     {
         QMessageBox::information(nullptr,"错误","请打开视频或者摄像头！");
         return;
     }
-
+    //开始检测时封锁其他按钮
+    ui->btn_startdetect->setEnabled(false);
+    ui->btn_stopdetect->setEnabled(true);
+    ui->btn_openfile->setEnabled(false);
+    ui->btn_loadmodel->setEnabled(false);
+    ui->btn_camera->setEnabled(false);
+    ui->comboBox->setEnabled(false);
+    ui->te_message->append(QString( "=======================\n"
+                                   "        开始检测\n"
+                                   "=======================\n"));
 }
 
 
@@ -294,6 +287,7 @@ void MainWindow::on_btn_loadmodel_clicked()
     {
         ui->te_message->append("加载模型成功！");
         is_loadedmodel = true;
+        ui->btn_startdetect->setEnabled(true);
     }
 }
 
@@ -301,30 +295,17 @@ void MainWindow::on_btn_loadmodel_clicked()
 void MainWindow::on_btn_stopdetect_clicked()
 {
     //开始检测时封锁其他按钮
-    timer->stop();
     ui->btn_startdetect->setEnabled(true);
     ui->btn_stopdetect->setEnabled(false);
     ui->btn_openfile->setEnabled(true);
     ui->btn_loadmodel->setEnabled(true);
     ui->btn_camera->setEnabled(true);
     ui->comboBox->setEnabled(true);
+    timer->stop();
     ui->te_message->append(QString( "======================\n"
-                                    "        停止检测\n"
-                                    "======================\n"));
+                                   "        停止检测\n"
+                                   "======================\n"));
     canDetect = false;
-    ui->lb_show->clear();
 }
 
-void MainWindow::drawRectPic(cv::Mat &frame)
-{   
-    //显示图片
-    QImage img = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-    QPixmap mmp = QPixmap::fromImage(img);
-    mmp = mmp.scaledToHeight(ui->lb_show->height());  //设置图像的缩放比例
-    ui->lb_show->setPixmap(mmp);
-    auto end = std::chrono::steady_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    ui->te_message->append(QString("cost_time: %1 ms").arg(elapsed.count()));
-    ui->te_message->moveCursor(QTextCursor::End); //确保显示最新信息
-}
 
