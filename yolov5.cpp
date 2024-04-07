@@ -2,7 +2,10 @@
 using namespace std;
 using namespace cv;
 
-YOLOv5::YOLOv5() {}
+YOLOv5::YOLOv5(QObject *parent)
+    : QObject{parent}
+{}
+
 
 // YOLOv5对象的初始化函数
 void YOLOv5::Init(NetConfig config)
@@ -131,6 +134,7 @@ void YOLOv5::detect(cv::Mat &frame)
     }
 
     indices.clear();
+    vec_clsString.clear();
     cv::dnn::NMSBoxes(boxes, confidences, this->confThreshold, this->nmsThreshold, indices);
     for (size_t i = 0; i < indices.size(); ++i)
     {
@@ -139,7 +143,11 @@ void YOLOv5::detect(cv::Mat &frame)
         // 绘制预测框及其类别和置信度
         this->drawPred(classIds[idx], confidences[idx], box.x, box.y,
                        box.x + box.width, box.y + box.height, frame);
+        //类别存入容器
+        vec_clsString.push_back(classes[idx]);
     }
+    //发送信号
+    emit sendClass(vec_clsString);
 }
 
 void YOLOv5::drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat &frame)

@@ -5,6 +5,7 @@
 #include <opencv2/core/cuda.hpp>
 #include <QMessageBox>
 #include <QDebug>
+#include <QObject>
 
 #ifdef QT_NO_DEBUG
 #pragma comment(lib,"E:/Environment/opencv460-cuda/x64/vc16/lib/opencv_world460.lib")
@@ -21,13 +22,19 @@ struct NetConfig
 
 
 
-class YOLOv5
-{
+class YOLOv5 : public QObject {
+    Q_OBJECT  // 使得类支持Qt信号和槽机制
 public:
-    YOLOv5();
+    explicit YOLOv5(QObject *parent = nullptr);
     void Init(NetConfig config);
     bool loadModel(QString onnxfile);
     void detect(cv::Mat& frame);
+
+    //发送ID的string
+    std::vector<std::string> vec_clsString;
+
+signals:
+    void sendClass(std::vector<std::string> vec_clsString);
 
 private:
     float confThreshold; // 类别置信度阈值
@@ -66,6 +73,8 @@ private:
     std::vector<cv::Mat> outs;
     // 检测到的类别ID
     std::vector<int> classIds;
+
+
     // 检测到的类别的置信度
     std::vector<float> confidences;
     // 检测到的对象的边界框
@@ -81,10 +90,11 @@ private:
 
     void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
     void sigmoid(cv::Mat* out, int length);
+
 };
 
-static inline float sigmoid_x(float x)
-{
-    return static_cast<float>(1.f / (1.f + exp(-x)));
-}
+// static inline float sigmoid_x(float x)
+// {
+//     return static_cast<float>(1.f / (1.f + exp(-x)));
+// }
 #endif // YOLOV5_H

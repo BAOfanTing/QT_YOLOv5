@@ -197,6 +197,11 @@
          <string/>
         </property>
        </widget>
+       <widget class="QLabel" name="lb_class">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
       </widget>
       <widget class="QTextEdit" name="te_message">
        <property name="minimumSize">

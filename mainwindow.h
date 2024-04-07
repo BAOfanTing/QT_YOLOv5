@@ -48,6 +48,8 @@ private slots:
 
     void on_btn_stopdetect_clicked();
 
+    void drawClass(std::vector<std::string> vec_clsString);
+
 private:
     Ui::MainWindow *ui;
 

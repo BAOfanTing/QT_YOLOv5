@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
                                .arg(conf.confThreshold));
     ui->btn_startdetect->setEnabled(false);
     ui->btn_stopdetect->setEnabled(false);
+    //连接显示类别数量
+    connect(yolov5,&YOLOv5::sendClass,this,&MainWindow::drawClass);
 
 }
 
@@ -306,6 +308,23 @@ void MainWindow::on_btn_stopdetect_clicked()
                                    "        停止检测\n"
                                    "======================\n"));
     canDetect = false;
+}
+
+void MainWindow::drawClass(std::vector<std::string> vec_clsString)
+{
+    // 统计每个类别的数量
+    std::map<std::string, int> classCounts;
+    for (const auto& cls : vec_clsString) {
+        ++classCounts[cls];
+    }
+
+    // 格式化统计结果为一个字符串
+    QString oss;
+    for (const auto& pair : classCounts) {
+        oss += QString::fromStdString(pair.first) + ": " + QString::number(pair.second) + "  ";
+    }
+    ui->lb_class->setText(oss);
+    //ui->te_message->append(oss);
 }
 
 
